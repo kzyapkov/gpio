@@ -3,8 +3,8 @@ package gpio_test
 import (
 	"testing"
 
-	"github.com/davecheney/gpio"
-	"github.com/davecheney/gpio/rpi"
+	"github.com/kzyapkov/gpio"
+	"github.com/kzyapkov/gpio/rpi"
 )
 
 func TestOpenPin(t *testing.T) {

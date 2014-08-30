@@ -1,7 +1,7 @@
 package rpi
 
 import (
-	"github.com/davecheney/gpio"
+	"github.com/kzyapkov/gpio"
 )
 
 // assert that rpi.pin implements gpio.Pin
