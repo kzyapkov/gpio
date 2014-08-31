@@ -11,11 +11,12 @@ import (
 )
 
 var pin = flag.Int("pin", 0, "GPIO # to toggle")
-var T = flag.Int("period", 250, "Period to toggle pin at, ms")
+var T = flag.Float64("freq", 5, "Frequency in Hz")
+
 
 func main() {
 	flag.Parse()
-	fmt.Printf("Opening pin %d and ticking with %d milliseconds", pin, T)
+	fmt.Printf("Opening pin %d and ticking with %.3f Hz", *pin, *T)
 	pin, err := gpio.OpenPin(*pin, gpio.ModeOutput)
 	if err != nil {
 		fmt.Printf("Error opening pin %d: %s\n", pin, err)
@@ -24,7 +25,7 @@ func main() {
 
 	// turn the led off on exit
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, os.Interrupt, os.Kill)
 	go func() {
 		for _ = range c {
 			fmt.Printf("\nClearing and unexporting the pin.\n")
@@ -34,7 +35,9 @@ func main() {
 		}
 	}()
 
-	tt := time.Duration(*T) * time.Millisecond
+	// Calculate half period
+	periodMs := (1 / *T) * 1000
+	tt := time.Duration(periodMs / 2) * time.Millisecond
 	fmt.Println("")
 	for {
 		fmt.Print("\rsetting...")
