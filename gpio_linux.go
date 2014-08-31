@@ -71,6 +71,11 @@ func setupEpoll() {
 		for {
 			numEvents, err := syscall.EpollWait(epollFD, epollEvents[:], -1)
 			if err != nil {
+				if errno, ok := err.(syscall.Errno); ok {
+					if errno == syscall.EINTR {
+						continue
+					}
+				}
 				panic(fmt.Sprintf("EpollWait error: %s", err.Error()))
 			}
 			for i := 0; i < numEvents; i++ {
@@ -235,6 +240,7 @@ func (p *pin) EndWatch() error {
 
 // Wait blocks while waits for the pin state to match the condition, then returns.
 func (p *pin) Wait(condition bool) {
+	_ = condition
 	panic("Wait is not yet implemented!")
 }
 
@@ -243,11 +249,11 @@ func (p *pin) Err() error {
 	return p.err
 }
 
-func expose(pin int) (string, error) {
-	pinBase := filepath.Join(gpiobase, fmt.Sprintf("gpio%d", pin))
+func expose(base string, pin int) (string, error) {
+	pinBase := filepath.Join(base, fmt.Sprintf("gpio%d", pin))
 	var err error
 	if _, statErr := os.Stat(pinBase); os.IsNotExist(statErr) {
-		err = writeFile(filepath.Join(gpiobase, "export"), "%d", pin)
+		err = writeFile(filepath.Join(base, "export"), "%d", pin)
 	}
 	return pinBase, err
 }

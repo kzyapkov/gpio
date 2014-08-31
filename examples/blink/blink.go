@@ -5,16 +5,20 @@ import (
 	"os"
 	"os/signal"
 	"time"
+	"flag"
 
 	"github.com/kzyapkov/gpio"
-	"github.com/kzyapkov/gpio/rpi"
 )
 
+var pin = flag.Int("pin", 0, "GPIO # to toggle")
+var T = flag.Int("period", 250, "Period to toggle pin at, ms")
+
 func main() {
-	// set GPIO25 to output mode
-	pin, err := gpio.OpenPin(rpi.GPIO25, gpio.ModeOutput)
+	flag.Parse()
+	fmt.Printf("Opening pin %d and ticking with %d milliseconds", pin, T)
+	pin, err := gpio.OpenPin(*pin, gpio.ModeOutput)
 	if err != nil {
-		fmt.Printf("Error opening pin! %s\n", err)
+		fmt.Printf("Error opening pin %d: %s\n", pin, err)
 		return
 	}
 
@@ -30,10 +34,14 @@ func main() {
 		}
 	}()
 
+	tt := time.Duration(*T) * time.Millisecond
+	fmt.Println("")
 	for {
+		fmt.Print("\rsetting...")
 		pin.Set()
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(tt)
 		pin.Clear()
-		time.Sleep(100 * time.Millisecond)
+		fmt.Print("\rclearing...")
+		time.Sleep(tt)
 	}
 }
