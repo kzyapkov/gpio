@@ -33,9 +33,7 @@ const (
 )
 
 const (
-	gpiobase     = "/sys/class/gpio"
-	exportPath   = "/sys/class/gpio/export"
-	unexportPath = "/sys/class/gpio/unexport"
+	gpiobase = "/sys/class/gpio"
 )
 
 var (
@@ -108,8 +106,12 @@ type pin struct {
 // OpenPin exports the pin, creating the virtual files necessary for interacting with the pin.
 // It also sets the mode for the pin, making it ready for use.
 func OpenPin(n int, mode Mode) (Pin, error) {
+	return openPin(gpiobase, n, mode)
+}
+
+func openPin(base string, n int, mode Mode) (Pin, error) {
 	// export this pin to create the virtual files on the system
-	pinBase, err := expose(n)
+	pinBase, err := expose(base, n)
 	if err != nil {
 		return nil, err
 	}
