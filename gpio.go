@@ -6,7 +6,8 @@ type Mode string
 const (
 	ModeInput  Mode = "in"
 	ModeOutput Mode = "out"
-	ModePWM         = "pwm"
+	ModeHigh   Mode = "high" // Output with initial high value
+	ModeLow    Mode = "low"  // Output with initial low value
 )
 
 // Edge represents the edge on which a pin interrupt is triggered
