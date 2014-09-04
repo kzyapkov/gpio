@@ -1,18 +1,17 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"os/signal"
 	"time"
-	"flag"
 
 	"github.com/kzyapkov/gpio"
 )
 
 var pin = flag.Int("pin", 0, "GPIO # to toggle")
 var T = flag.Float64("freq", 5, "Frequency in Hz")
-
 
 func main() {
 	flag.Parse()
@@ -37,7 +36,7 @@ func main() {
 
 	// Calculate half period
 	periodMs := (1 / *T) * 1000
-	tt := time.Duration(periodMs / 2) * time.Millisecond
+	tt := time.Duration(periodMs/2) * time.Millisecond
 	fmt.Println("")
 	for {
 		fmt.Print("\rsetting...")

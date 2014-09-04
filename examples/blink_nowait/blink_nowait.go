@@ -1,11 +1,11 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"os/signal"
 	"time"
-	"flag"
 
 	"github.com/kzyapkov/gpio"
 )
@@ -62,7 +62,7 @@ func main() {
 
 	// Calculate half period
 	periodMs := (1 / *T) * 1000
-	tt := time.Duration(periodMs / 2) * time.Millisecond
+	tt := time.Duration(periodMs/2) * time.Millisecond
 
 	// run without blocking
 	go loop(dying, tt, pin)

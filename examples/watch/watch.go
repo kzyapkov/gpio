@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/kzyapkov/gpio"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/kzyapkov/gpio"
 )
 
 func main() {
