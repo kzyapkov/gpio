@@ -1,57 +1,70 @@
 package main
 
 import (
-	"fmt"
+	"flag"
 	"os"
 	"os/signal"
-	"time"
+	"strings"
+
+	"strconv"
+
+	"log"
 
 	"github.com/kzyapkov/gpio"
 )
 
+var pinNumbers = flag.String("pins", "", "Comma-separated pin numbers to monitor")
+
+type PinEvent struct {
+	Number int
+	Value  bool
+}
+
 func main() {
-	// set GPIO25 to output mode
-	pin, err := gpio.OpenPin(gpio.GPIO22, gpio.ModeInput)
-	if err != nil {
-		fmt.Printf("Error opening pin! %s\n", err)
-		return
+	flag.Parse()
+	var i, n int
+	var err error
+	var v string
+	pins := make([]int, 100) // should be good for anyone
+
+	for _, v = range strings.Split(*pinNumbers, ",") {
+		i, err = strconv.Atoi(v)
+		if err == nil {
+			pins[n] = i
+			n++
+		}
 	}
-	power, err := gpio.OpenPin(gpio.GPIO17, gpio.ModeOutput)
-	if err != nil {
-		fmt.Printf("Error opening pin! %s\n", err)
-		return
+
+	if n == 0 {
+		log.Fatalf("No pins specified, got %s", *pinNumbers)
+	} else {
+		log.Printf("Watching %d pins: %#v", n, pins[:n])
+	}
+
+	toggle := make(chan PinEvent, 10)
+	for _, i = range pins[:n] {
+		var thePin gpio.Pin
+		var theNum = i
+		thePin, err = gpio.OpenPin(n, gpio.ModeInput)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer thePin.Close()
+		thePin.BeginWatch(gpio.EdgeBoth, func() {
+			toggle <- PinEvent{theNum, thePin.Get()}
+		})
 	}
 
 	// clean up on exit
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	go func() {
-		for _ = range c {
-			fmt.Println("Closing pin and terminating program.")
-			power.Clear()
-			pin.Close()
-			power.Close()
-			os.Exit(0)
-		}
-	}()
-
-	err = pin.BeginWatch(gpio.EdgeFalling, func() {
-		fmt.Printf("Callback for %d triggered!\n\n", gpio.GPIO22)
-	})
-	if err != nil {
-		fmt.Printf("Unable to watch pin: %s\n", err.Error())
-		os.Exit(1)
-	}
-
-	fmt.Println("Now watching pin 22 on a falling edge.")
-
+	die := make(chan os.Signal)
+	signal.Notify(die, os.Interrupt)
 	for {
-		fmt.Println("Setting power high")
-		power.Set()
-		time.Sleep(2000 * time.Millisecond)
-		fmt.Println("Setting power low")
-		power.Clear()
-		time.Sleep(2000 * time.Millisecond)
+		select {
+		case <-die:
+			return
+		case e := <-toggle:
+			log.Printf("Pin %d is now %t", e.Number, e.Value)
+		}
 	}
-
+	log.Println("Signal received, returning")
 }
