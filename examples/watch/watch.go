@@ -43,15 +43,15 @@ func main() {
 
 	toggle := make(chan PinEvent, 10)
 	for _, i = range pins[:n] {
-		var thePin gpio.Pin
-		var theNum = i
-		thePin, err = gpio.OpenPin(n, gpio.ModeInput)
+		var pin gpio.Pin
+		var gpioNum = i
+		pin, err = gpio.OpenPin(gpioNum, gpio.ModeInput)
 		if err != nil {
 			log.Fatal(err)
 		}
-		defer thePin.Close()
-		thePin.BeginWatch(gpio.EdgeBoth, func() {
-			toggle <- PinEvent{theNum, thePin.Get()}
+		defer pin.Close()
+		pin.BeginWatch(gpio.EdgeBoth, func() {
+			toggle <- PinEvent{gpioNum, pin.Get()}
 		})
 	}
 
@@ -61,10 +61,10 @@ func main() {
 	for {
 		select {
 		case <-die:
+			log.Println("Signal received, returning")
 			return
 		case e := <-toggle:
 			log.Printf("Pin %d is now %t", e.Number, e.Value)
 		}
 	}
-	log.Println("Signal received, returning")
 }
